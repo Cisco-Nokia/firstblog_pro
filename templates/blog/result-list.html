@@ -1,0 +1,20 @@
+{% extends 'blog/base-index.html' %}
+{% load my_blog_tags %}
+{% load staticfiles %}
+
+{% block title %}
+<title>{{ category_result.name }}文章列表</title>
+{% endblock %}
+
+
+{% block article_type %}
+    {% if category_result %}
+        {{ category_result.name }}
+    {% elif archive_time %}
+        {{ archive_time }}
+     {% elif tag %}
+        {{ tag.name }}标签
+    {% elif user %}
+        {{ user.username }}
+    {% endif %}
+{% endblock %}

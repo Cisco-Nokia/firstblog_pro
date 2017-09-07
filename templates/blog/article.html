@@ -1,0 +1,102 @@
+{% extends 'blog/base.html' %}
+{% load myfilter %}
+
+{% block title %}
+<title>文章详情页</title>
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <div class="row row-offcanvas row-offcanvas-right">
+        <!--左边自动生成目录start-->
+ 		<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar">
+            <div class="affix">
+                <p>文章目录</p>
+               {{ toc | safe }}
+            </div>
+        </div>
+        <!--左边end-->
+
+        <!--右侧栏文章详情及评论start-->
+        <div class="col-xs-12 col-sm-9">
+            <div class="row">
+                <div class="col-xs-6 col-lg-11">
+                    <!--文章标题-->
+                  <h2>{{ article.title }}</h2>
+
+                    <!--文章脚注-->
+                  <p >
+                      <a href="{% url 'blog:author_article' article.author_id %}" style="padding-right: 10px; color: #2aabd2"><span class="glyphicon glyphicon-user">{{ article.author }}</span></a>
+                      <a href="{% url 'blog:category' article.category_id %}" style="padding-right: 10px; color: #2aabd2"><span class="glyphicon glyphicon-book">{{ article.category }}</span></a>
+                      <a style="padding-right: 10px; color: #2aabd2;"><span class="glyphicon glyphicon-time">{{ article.date_publish }}</span></a>
+                      <span style="float: right">
+                        <a style="padding-right: 10px; color: black"><span class="glyphicon glyphicon-eye-open">({{ article.click_count }})</span></a>
+                          <a href="{% url 'blog:awesome_click' %}" style="padding-right: 10px; color: red" id="awesome_count"><span class="glyphicon glyphicon-thumbs-up">({{ article.awesome_count }})</span></a>
+                          <button type="button" id="awesome" arti_id="{{ article.id }}">点我</button>
+                      </span>
+                  </p>
+
+                    <!--文章内容-->
+                    <p style="margin-top: 40px;font-size: medium;line-height: 1.8em;">
+                        {{ article.content | safe }}
+                    </p>
+
+                    <hr>
+                    <!--文章评论-->
+                    <div style="font-size: small">
+                        {% for comment in comment_list %}
+                        <div class="media" >
+                          <div class="media-left">
+                            <a href="#">
+                              <img class="media-object" src="{{ comment.username.user_img.url }}" alt="...">
+                            </a>
+                          </div>
+                          <div class="media-body" style="background-color: #e8e8e8">
+                            <h4 class="media-heading" style="color: blue">{{ comment.username }}</h4>
+                            <p style="font-size: 13px;">
+                                {{ comment.content }}
+                            </p>
+                              <p style="text-align: right">{{ comment.date_publish }}</p>
+                          </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <hr>
+                    <!--评论表单-->
+                    <div>
+                        {% if user.is_authenticated %}
+                            <form class="form-horizontal" action="{% url 'comments:comment' article.id %}" method="post">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                <label for="textarea1" class="col-sm-2 control-label">评论内容</label>
+                                    <div class="col-sm-10">
+                                        {% for field in form %}
+                                            {{ field | addclass:'form-control' }}
+                                        {% endfor %}
+{#                                      <textarea id="textarea1" class="form-control" rows="5"></textarea>#}
+                                    </div>
+                                </div>
+                              <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-10">
+                                  <button type="submit" class="btn btn-default">提交</button>
+                                </div>
+                              </div>
+                        </form>
+                        {% else %}
+                            <h5>
+                                只有登录用户才能评论哦 &nbsp <a href="{% url 'user:register' %}">注册</a>  <a href="{% url 'login' %}?next={{ request.path }}">登录</a>
+                            </h5>
+                            {{ form }}
+                        {% endif %}
+                    </div>
+
+                </div><!--/.col-xs-6.col-lg-4-->
+            </div>
+        </div>
+        <!--右侧栏end-->
+
+
+    </div>
+</div>
+{% endblock %}

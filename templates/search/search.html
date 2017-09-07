@@ -1,0 +1,189 @@
+{% extends 'blog/base.html' %}
+{% load my_blog_tags %}
+{% load staticfiles %}
+{% load highlight %}
+
+{% block title %}
+    <title>搜索结果</title>
+{% endblock %}
+
+
+{% block main %}
+<div class="container">
+    <div class="row row-offcanvas row-offcanvas-right">
+
+        <!--左边start-->
+        <div class="col-xs-12 col-sm-7 col-sm-offset-1">
+            {% if query %}
+                <h3 style="margin-top: 50px;">
+                    <span>
+                        {{ query }}
+                    </span>
+                    的搜索结果：
+                </h3>
+                <hr/>
+                <!--文章列表start-->
+                <div class="row">
+                    {% for article in page.object_list %}
+                    <div class="col-xs-6 col-lg-12">
+                      <a href="{% url 'blog:article' article.object.id %}" target="_blank"><h4 style="font-weight: bold; color: black">{% highlight article.object.title with query %}</h4></a>
+                      <p>{% highlight article.object.desc with query %}</p>
+                      <p>
+                          <a href="{% url 'blog:author_article' article.object.author_id %}" style="padding-right: 10px; color: #2aabd2"><span class="glyphicon glyphicon-user">{{ article.object.author }}</span></a>
+                          <a href="{% url 'blog:category' article.object.category_id %}" style="padding-right: 10px; color: #2aabd2"><span class="glyphicon glyphicon-book">{{ article.object.category }}</span></a>
+                          <a style="padding-right: 10px; color: #2aabd2;"><span class="glyphicon glyphicon-time">{{ article.object.date_publish }}</span></a>
+                          <span style="float: right">
+                            <a style="padding-right: 10px; color: black"><span class="glyphicon glyphicon-eye-open">({{ article.object.click_count }})</span></a>
+                              <a href="#" style="padding-right: 10px; color: red"><span class="glyphicon glyphicon-thumbs-up">({{ article.object.awesome_count }})</span></a>
+                          </span>
+                      </p>
+                    </div><!--/.col-xs-6.col-lg-4-->
+                    {% empty %}
+                        <div>没有搜索到你想要的结果！</div>
+                    {% endfor %}
+                </div>
+                <!--文章列表end-->
+
+                <!--分页start-->
+                <div class="row pull-right">
+                <nav aria-label="Page navigation" >
+                  <ul class="pagination" style="float: left">
+                      {% if page.has_previous %}
+                        <li>
+                          <a href="?page={{ page.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                          </a>
+                        </li>
+                      {% endif %}
+                      {% for pgnum in page.paginator.page_range %}
+                          {% if pgnum == page.number %}
+                            <li class="active"><a href="?page={{ pgnum }}">{{ pgnum }}</a></li>
+                          {% else %}
+                            <li><a href="?page={{ pgnum }}">{{ pgnum }}</a></li>
+                          {% endif %}
+                        {% endfor %}
+                       {% if page.has_next %}
+                          <li>
+                              <a href="?page={{ page.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                              </a>
+                          </li>
+                      {% endif %}
+                  </ul>
+                </nav>
+                </div>
+                <!--分页end-->
+            {% else %}
+                请输入搜索关键词，例如django
+            {% endif %}
+		</div>
+        <!--左边end-->
+
+
+        <!--右侧栏start-->
+        <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar">
+
+                    <!--文章排行start-->
+                    <div class="list-group" style="margin-bottom: 50px;">
+                        <h3>文章排行</h3>
+                         <!-- 选项卡组件（菜单项nav-tabs）-->
+                        <ul id="myTab" class="nav nav-tabs nav-justified" role="tablist">
+                          <li class="active small"><a href="#bulletin" role="tab" data-toggle="tab">博主推荐</a></li>
+                          <li class="small"><a href="#rule" role="tab" data-toggle="tab">点赞最多</a></li>
+                          <li class="small"><a href="#forum" role="tab" data-toggle="tab">热议文章</a></li>
+                        </ul>
+                        <!-- 选项卡面板 -->
+                        <div id="myTabContent" class="tab-content">
+                          <div class="tab-pane active" id="bulletin">
+                              <ol class="list-group">
+                                  {% get_recommend as article_list %}
+                                  {% for article in article_list %}
+                                  <a href="{% url 'blog:article' article.id %}"><li class="list-group-item small text-nowrap">{{ article.title }}</li></a>
+                                  {% endfor %}
+                              </ol>
+                          </div>
+                          <div class="tab-pane" id="rule">
+                              <ol class="list-group">
+                                  {% get_awesome_count as article_list %}
+                                  {% for article in article_list %}
+                                      <a href="{% url 'blog:article' article.id %}"><li class="list-group-item small">{{ article.title }}</li></a>
+                                  {% endfor %}
+                              </ol>
+                          </div>
+                          <div class="tab-pane" id="forum">
+                              <ol class="list-group">
+                                  {% get_comment_count as article_list %}
+                                  {% for article in article_list %}
+                                      <a href="{% url 'blog:article' article.id %}"><li class="list-group-item small">{{ article.title }}</li></a>
+                                  {% endfor %}
+                              </ol>
+                          </div>
+                        </div>
+                    </div>
+                    <!--文章排行end-->
+
+                    <!--文章归档start-->
+                    <div class="list-group" style="margin-bottom: 50px;">
+                         <h3>文章归档</h3>
+                        {% get_archives as date_list %}
+                        {% for date in date_list %}
+                        <a href="{% url 'blog:archive' date.year date.month %}" class="list-group-item">
+                            {{ date.year }}年{{ date.month }}月文章
+                            <span class="badge">
+                                {% get_archive_count %}
+                            </span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    <!--文章归档end-->
+
+                    <!--标签云start-->
+                    <div class="list-group" style="margin-bottom: 50px;">
+                        <h3>标签云</h3>
+                        <h5 style="line-height: 2.0em;">
+                            {% get_tags as tag_list %}
+                            {% for tag in tag_list %}
+                                <a href="{% url 'blog:tag_article' tag.id %}" style="text-decoration: none"><span class="label">{{ tag.name }}</span></a>
+                            {% endfor %}
+        {#                <a href="#" style="text-decoration: none"><span class="label label-primary">主要标签</span></a>#}
+        {#                <span class="label label-success">成功标签</span>#}
+        {#                <span class="label label-info">信息标签</span>#}
+        {#                <span class="label label-warning">警告标签</span>#}
+        {#                <span class="label label-danger">危险标签</span>#}
+                        </h5>
+                    </div>
+                    <!--标签云end-->
+
+                    <!--标签云随机颜色start-->
+                    <script>
+                        $(function () {
+                            $("h5 a span").each(function () {
+                                $(this).addClass(getRandomcolor());
+                            });
+                        });
+                        function getRandomcolor() {
+                            var c = Math.floor(Math.random()*5)
+                            var color = ['label-default','label-primary','label-success','label-info','label-warning','label-danger']
+                            return color[c]
+                        }
+                    </script>
+                    <!--标签云随机颜色end-->
+
+                    <!--友情链接start-->
+                    <div class="list-group" style="margin-bottom: 50px;">
+                        <h3>友情链接</h3>
+                        <h5 style="line-height: 2.0em;">
+                            {% get_links as link_list %}
+                            {% for link in link_list %}
+                                <a href="{{ link.url }}" style="text-decoration: none"><span class="label">{{ link.title }}</span></a>
+                            {% endfor %}
+                        </h5>
+                    </div>
+                    <!--友情链接end-->
+
+        </div>
+        <!--右侧栏end-->
+    </div>
+</div>
+{% endblock %}
+
